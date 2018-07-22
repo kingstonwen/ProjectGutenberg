@@ -84,12 +84,7 @@ public class TextAnalysis {
 
     public Object[] get20MostFrequentWords(String fileName) {
         Map<String, Integer> wordCount = getWordCount(fileName);
-        Map<String,Integer> top20 =
-                wordCount.entrySet().stream()
-                        .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
-                        .limit(20)
-                        .collect(Collectors.toMap(
-                                Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
+        Map<String, Integer> top20 = getTopKStringCountMap(wordCount, 20);
         Object[] res = new Object[20];
         int i = 0;
         for(Map.Entry<String,Integer> entry : top20.entrySet()) {
@@ -99,6 +94,14 @@ public class TextAnalysis {
             res[i++] = temp;
         }
         return res;
+    }
+
+    private Map<String, Integer> getTopKStringCountMap(Map<String, Integer> wordCount, int k) {
+        return wordCount.entrySet().stream()
+                .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+                .limit(k)
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
     }
 
     private void updateMapFromLine(String line, Map<String, Integer> map) {
@@ -178,11 +181,113 @@ public class TextAnalysis {
         return least20;
     }
 
+    public int[] getFrequencyOfWord(String word) {
+        List<Integer> frequencyPerChapter = new ArrayList<>();
+        int chapterIndex = -1;
+        try(BufferedReader reader = new BufferedReader(new FileReader(BOOK_FILE_PATH))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.isEmpty()) {
+                    chapterIndex = getCountInLine(line, word, frequencyPerChapter, chapterIndex);
+                }
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        int i = 0;
+        int[] res = new int[frequencyPerChapter.size()];
+        for(Integer num : frequencyPerChapter) {
+            res[i++] = num;
+        }
+        return res;
+    }
+
+    private int getCountInLine(String line, String target, List<Integer> freqPerChapter, int index) {
+        if (line.startsWith("Chapter")) {
+            index++;
+            freqPerChapter.add(0);
+        }
+        if (index == -1) return index;
+        Pattern words = Pattern.compile("[a-zA-Z]+");
+        Matcher matcher = words.matcher(line);
+        while (matcher.find()) {
+            String word = matcher.group(0).toLowerCase();
+            if (word.equals(target.toLowerCase())) {
+                int freq = freqPerChapter.get(index);
+                freqPerChapter.set(index, freq+1);
+            }
+        }
+        return index;
+    }
+
+    public int getChapterQuoteAppears(String quote) {
+        int currChapterNum = 0;
+        try(BufferedReader reader = new BufferedReader(new FileReader(BOOK_FILE_PATH))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.isEmpty()) {
+                    if (line.startsWith("Chapter")) {
+                        String[] tokens = line.split(" ");
+                        currChapterNum = Integer.parseInt(tokens[1]);
+                    }
+                    if (line.contains(quote)) {
+                        return currChapterNum;
+                    }
+                }
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        return currChapterNum;
+    }
+
+    public String generateSentence() {
+        String startWord = "We";
+        String sentence = startWord;
+        String currentWord = startWord;
+        for(int i = 0; i < 20; i++) {
+            Map<String,Integer> afterMap = getWordsAfter(currentWord);
+            Map<String, Integer> top1 = getTopKStringCountMap(afterMap,1);
+            currentWord = top1.keySet().toArray(new String[1])[0];
+            sentence += " " + currentWord;
+        }
+        return sentence + ".";
+    }
+
+    private Map<String, Integer> getWordsAfter(String word) {
+        Map<String, Integer> afterMap = new HashMap<>();
+        try(BufferedReader reader = new BufferedReader(new FileReader(BOOK_FILE_PATH))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.isEmpty()) {
+                    updateMap(afterMap, line, word);
+                }
+            }
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
+        return afterMap;
+    }
+
+    private void updateMap(Map<String, Integer> map, String line, String target) {
+        Pattern words = Pattern.compile("[a-zA-Z]+");
+        Matcher matcher = words.matcher(line);
+        while (matcher.find()) {
+            String word = matcher.group(0);
+            if (word.equals(target)) {
+                if (matcher.find()) {
+                    String afterWord = matcher.group(0);
+                    map.put(afterWord, map.getOrDefault(word,0) + 1);
+                }
+            }
+        }
+    }
+
 
     public static void main(String[] args) {
         String bookFilePath = BOOK_FILE_PATH;
         TextAnalysis analysis = new TextAnalysis();
-        Long start1 = System.currentTimeMillis();
+//        Long start1 = System.currentTimeMillis();
 //        int res = analysis.getTotalNumberOfWords("1342.txt");
 //        Long duration1 = System.currentTimeMillis() - start1;
 //        System.out.println(res);
@@ -199,6 +304,9 @@ public class TextAnalysis {
 //        Object[] top20 = analysis.get20MostFrequentWords(TEST_FILE_PATH);
 //        analysis.getMostCommon100Words();
 //        analysis.getKMostInterestingFrequentWords(BOOK_FILE_PATH, 30);
-        analysis.get20LeastFrequentWords(BOOK_FILE_PATH);
+//        analysis.get20LeastFrequentWords(BOOK_FILE_PATH);
+//        analysis.getFrequencyOfWord("Elizabeth");
+//        System.out.println(analysis.getChapterQuoteAppears("\"But I was embarrassed.\""));
+        analysis.generateSentence();
     }
 }
