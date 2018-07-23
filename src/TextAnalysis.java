@@ -283,6 +283,12 @@ public class TextAnalysis {
         }
     }
 
+    public List<String> getAutocompleteSentence(String startOfSentence) {
+        return null;
+    }
+
+
+
 
     public static void main(String[] args) {
         String bookFilePath = BOOK_FILE_PATH;
