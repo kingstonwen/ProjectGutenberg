@@ -128,10 +128,19 @@ public class TextAnalysis {
         return commonWords;
     }
 
-    public Map<String, Integer> getKMostInterestingFrequentWords(String filePath, int k) {
+    public Object[] getKMostInterestingFrequentWords(String filePath, int k) {
         Set<String> most100CommonWords = getMostCommon100Words();
         Map<String, Integer> wordCount = getWordCount(filePath);
-        return getTopKMapHelper(most100CommonWords, wordCount, k);
+        Map<String, Integer> topKInteresting = getTopKMapHelper(most100CommonWords, wordCount, k);
+        Object[] res = new Object[k];
+        int i = k-1;
+        for(Map.Entry<String,Integer> entry : topKInteresting.entrySet()) {
+            Object[] temp = new Object[2];
+            temp[0] = entry.getKey();
+            temp[1] = entry.getValue();
+            res[i--] = temp;
+        }
+        return res;
     }
 
     private Map<String, Integer> getWordCount(String filePath) {
@@ -170,7 +179,7 @@ public class TextAnalysis {
         return resMap;
     }
 
-    public Map<String, Integer> get20LeastFrequentWords(String filePath) {
+    public Object[] get20LeastFrequentWords(String filePath) {
         Map<String, Integer> wordCount = getWordCount(filePath);
         Map<String,Integer> least20 =
                 wordCount.entrySet().stream()
@@ -178,7 +187,15 @@ public class TextAnalysis {
                         .limit(20)
                         .collect(Collectors.toMap(
                                 Map.Entry::getKey, Map.Entry::getValue, (e1, e2) -> e1, LinkedHashMap::new));
-        return least20;
+        Object[] res = new Object[20];
+        int i = 0;
+        for(Map.Entry<String,Integer> entry : least20.entrySet()) {
+            Object[] temp = new Object[2];
+            temp[0] = entry.getKey();
+            temp[1] = entry.getValue();
+            res[i++] = temp;
+        }
+        return res;
     }
 
     public int[] getFrequencyOfWord(String word) {
@@ -291,28 +308,41 @@ public class TextAnalysis {
 
 
     public static void main(String[] args) {
-        String bookFilePath = BOOK_FILE_PATH;
         TextAnalysis analysis = new TextAnalysis();
-//        Long start1 = System.currentTimeMillis();
-//        int res = analysis.getTotalNumberOfWords("1342.txt");
-//        Long duration1 = System.currentTimeMillis() - start1;
-//        System.out.println(res);
+        int res = analysis.getTotalNumberOfWords(BOOK_FILE_PATH);
+        System.out.println("Total words in novel: " + res);
+        System.out.println("Total unique words in novel : " + analysis.getUniqueWordsInBook(BOOK_FILE_PATH));
+        Object[] top20 = analysis.get20MostFrequentWords(BOOK_FILE_PATH);
+        System.out.println("Most frequent words:");
+        for(int i = 0; i < 20; i++) {
+            System.out.print((i+1) + ". ");
+            Object[] temp = (Object[])top20[i];
+            System.out.println(temp[0] + " " + temp[1]);
+        }
+        System.out.println("Most interesting frequent words:");
+        int k = 30;
+        Object[] topKMostInteresting = analysis.getKMostInterestingFrequentWords(BOOK_FILE_PATH, k);
+        for(int i = 0; i < k; i++) {
+            System.out.print(i+1 + ". ");
+            Object[] temp = (Object[])topKMostInteresting[i];
+            System.out.println(temp[0] + " " + temp[1]);
+        }
+        Object[] least20 = analysis.get20LeastFrequentWords(BOOK_FILE_PATH);
+        System.out.println("20 Least Frequent words:");
+        for(int i = 0; i < 20; i++) {
+            System.out.print(i+1 + ". ");
+            Object[] temp = (Object[])top20[i];
+            System.out.println(temp[0] + " " + temp[1]);
+        }
+        int[] freqOfWord = analysis.getFrequencyOfWord("Darcy");
+        System.out.print("[" + freqOfWord[0]);
+        for(int i = 1; i < freqOfWord.length; i++) {
+            System.out.print("," + freqOfWord[i]);
+        }
+        System.out.println("]");
 
-//        Long start2 = System.currentTimeMillis();
-//        int res2 = TextAnalysis.getTotalNumberOfWords2("1342.txt");
-//        Long duration2 = System.currentTimeMillis() - start2;
-//        System.out.println("duration1" + duration1);
-//        System.out.println("duration2" + duration2);
-
-//        System.out.println("Total number of words: " + res);
-
-//        System.out.println(analysis.getUniqueWordsInBook(bookFilePath));
-//        Object[] top20 = analysis.get20MostFrequentWords(TEST_FILE_PATH);
-//        analysis.getMostCommon100Words();
-//        analysis.getKMostInterestingFrequentWords(BOOK_FILE_PATH, 30);
-//        analysis.get20LeastFrequentWords(BOOK_FILE_PATH);
-//        analysis.getFrequencyOfWord("Elizabeth");
-//        System.out.println(analysis.getChapterQuoteAppears("\"But I was embarrassed.\""));
-        analysis.generateSentence();
+        System.out.println(analysis.getChapterQuoteAppears("\"I declare after all there is no enjoyment like reading! How much sooner one tires of any thing than of a book! — When I have a house of my own, I shall be miserable if I have not an excellent library.\""));
+        String generateSentence = analysis.generateSentence();
+        System.out.println(generateSentence);
     }
 }
