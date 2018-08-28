@@ -341,7 +341,9 @@ public class TextAnalysis {
         }
         System.out.println("]");
 
-        System.out.println(analysis.getChapterQuoteAppears("\"I declare after all there is no enjoyment like reading! How much sooner one tires of any thing than of a book! — When I have a house of my own, I shall be miserable if I have not an excellent library.\""));
+        System.out.println(analysis.getChapterQuoteAppears("\"I declare after all there is no enjoyment like reading! " +
+                "How much sooner one tires of any thing than of a book! — When I have a house of my own, " +
+                "I shall be miserable if I have not an excellent library.\""));
         String generateSentence = analysis.generateSentence();
         System.out.println(generateSentence);
     }
