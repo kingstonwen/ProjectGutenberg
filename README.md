@@ -1,7 +1,7 @@
-#Text analysis
+# Text analysis
 This a Java program that analyze the text content of the Pride and Prejudice by Jane Austen.
 
-##Main features of the program
+## Main features of the program
 * Count the number of words in the entire novel 
 * Find out the number of unique words in the novel.
 * Find out 20 most frequenctly used words in the novel and the number of times they were used.
@@ -11,5 +11,5 @@ This a Java program that analyze the text content of the Pride and Prejudice by 
 * Implement a way for us to find out what chapter a certain quote from the book can be found in.
 * Write a sentence in the author's voice by implementing a method.
 
-##Output
+## Output
 The file Kingston's Project Analysis.pdf contains the summary of the analysis of Pride and Prejudice.
